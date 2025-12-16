@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      "Please fill a valid email address"],
     minlength: [5, "Email must be atleast 3 characters long"],
   },
   password: {
@@ -25,7 +28,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
-
   sockedId: {
     type: String,
   },
