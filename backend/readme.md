@@ -274,3 +274,124 @@ No request body is required. The endpoint relies on the `Authorization` header t
 
 - The token is cleared from the user's cookies and added to a blacklist to prevent reuse.
 - The `Authorization` header or cookie must contain a valid token for the logout to succeed.
+
+---
+
+# `POST /captains/register`
+
+## Description
+
+Register a new captain. The endpoint validates input, hashes the password, creates the captain in the database, and returns the created captain object.
+
+- **Method**: `POST`
+- **URL**: `/captains/register`
+- **Headers**: `Content-Type: application/json`
+
+## Request Body
+
+JSON object with the following fields:
+
+- `fullname` (object)
+  - `firstname` (string, required) — minimum length 3
+  - `lastname` (string, optional) — minimum length 3 if provided
+- `email` (string, required) — must be a valid email
+- `password` (string, required) — minimum length 6
+- `vehicle` (object)
+  - `color` (string, required) — minimum length 3
+  - `plate` (string, required) — minimum length 3
+  - `capacity` (integer, required) — minimum value 1
+  - `vehicleType` (string, required) — must be one of `car`, `motorcycle`, or `auto`
+
+### Example:
+
+```json
+{
+  "fullname": {
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "email": "john@example.com",
+  "password": "secure123",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC123",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+## Validation Rules (express-validator)
+
+- `body("fullname.firstname").isString().isLength({ min: 3 })` — returns 400 if `firstname` is not a string or shorter than 3 characters.
+- `body("email").isEmail()` — returns 400 if `email` is not valid.
+- `body("password").isLength({ min: 6 })` — returns 400 if `password` is shorter than 6 characters.
+- `body("vehicle.color").isString().isLength({ min: 3 })` — returns 400 if `color` is not a string or shorter than 3 characters.
+- `body("vehicle.plate").isString().isLength({ min: 3 })` — returns 400 if `plate` is not a string or shorter than 3 characters.
+- `body("vehicle.capacity").isInt({ min: 1 })` — returns 400 if `capacity` is less than 1.
+- `body("vehicle.vehicleType").isIn(["car", "motorcycle", "auto"])` — returns 400 if `vehicleType` is not one of the allowed values.
+
+If validation fails, the response is `400 Bad Request` with a JSON body containing the errors array.
+
+## Responses
+
+### `201 Created`
+
+- **Body**: `{ "captain": { ... } }`
+- **Note**: The captain object does not include the password (password is saved hashed).
+
+### Example Successful Response
+
+```json
+{
+  "captain": {
+    "_id": "64b8f1a2e6c8b1f0a1d2c3e4",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+### `400 Bad Request`
+
+- **Body Example** (validation errors):
+
+```json
+{
+  "errors": [
+    {
+      "value": "",
+      "msg": "Firstname must be at least 3 characters long",
+      "param": "fullname.firstname",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### `500 Internal Server Error`
+
+- **Body**: `{ "error": "<message>" }` (on unexpected server/database errors)
+
+## Behavior & Implementation Notes
+
+- Passwords are hashed using `bcrypt` before being stored.
+- The `email` field is unique in the database — attempting to register an existing email will raise a database error (usually a 500 unless explicitly handled).
+- The `vehicle.vehicleType` must be one of the allowed values (`car`, `motorcycle`, `auto`).
+
+## Example cURL
+
+```bash
+curl -X POST http://localhost:3000/captains/register \
+  -H "Content-Type: application/json" \
+  -d '{"fullname":{"firstname":"John","lastname":"Doe"},"email":"john@example.com","password":"secure123","vehicle":{"color":"Red","plate":"ABC123","capacity":4,"vehicleType":"car"}}'
+```
