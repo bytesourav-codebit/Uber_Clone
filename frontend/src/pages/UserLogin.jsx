@@ -35,7 +35,7 @@ const UserLogin = () => {
               setEmail(e.target.value);
             }}
             type="email"
-            placeholder="email@email.com"
+            placeholder="email@gmail.com"
             required
           />
           <h3 className="text-lg font-medium mb-2">Enter your password</h3>
