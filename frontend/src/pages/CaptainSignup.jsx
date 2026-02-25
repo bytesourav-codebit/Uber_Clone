@@ -1,29 +1,65 @@
 import React, { useState } from "react";
 import uberdriverlogo from "../assets/uber-driver-logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { CaptainDataContext } from "../context/CaptainContext";
+import axios from "axios";
 
 const CaptainSignup = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userData, setUserData] = useState("");
 
-  const submitHandler = (e) => {
+  const [vehicleColor, setVehicleColor] = useState("");
+  const [vehicleCapacity, setVehicleCapacity] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [vehiclePlate, setVehiclePlate] = useState("");
+
+  const { captain, setCaptain } = React.useContext(CaptainDataContext);
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setUserData({
-      fullName: {
-        firstName: firstName,
-        lastName: lastName,
+
+    const captainData = {
+      fullname: {
+        firstname: firstName,
+        lastname: lastName,
       },
-      email: email,
-      password: password,
-    });
+      email,
+      password,
+      vehicle: {
+        color: vehicleColor,
+        capacity: Number(vehicleCapacity),
+        vehicleType: vehicleType,
+        plate: vehiclePlate,
+      },
+    };
+
+    console.log(captainData);
+
+    setCaptain(captainData);
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/captains/register`,
+      captainData,
+    );
+
+    if (response.status === 201) {
+      setCaptain(response.data.captain);
+      localStorage.setItem("token", response.data.token);
+      navigate("/captain-home");
+    }
 
     setFirstName("");
     setLastName("");
     setEmail("");
     setPassword("");
+    setVehicleColor("");
+    setVehicleCapacity("");
+    setVehicleType("");
+    setVehiclePlate("");
   };
   return (
     <div className="p-7 flex flex-col h-screen justify-between">
@@ -79,11 +115,51 @@ const CaptainSignup = () => {
             placeholder="password"
             required
           />
+          <h3 className="text-lg font-medium mb-2">Vehicle Information</h3>
+
+          <input
+            className="bg-[#eeeeee] mb-4 rounded px-4 py-2 w-full text-lg"
+            type="text"
+            placeholder="Vehicle Color"
+            value={vehicleColor}
+            onChange={(e) => setVehicleColor(e.target.value)}
+            required
+          />
+
+          <input
+            className="bg-[#eeeeee] mb-4 rounded px-4 py-2 w-full text-lg"
+            type="text"
+            placeholder="Vehicle Plate Number"
+            value={vehiclePlate}
+            onChange={(e) => setVehiclePlate(e.target.value)}
+            required
+          />
+
+          <input
+            className="bg-[#eeeeee] mb-4 rounded px-4 py-2 w-full text-lg"
+            type="number"
+            placeholder="Vehicle Capacity"
+            value={vehicleCapacity}
+            onChange={(e) => setVehicleCapacity(e.target.value)}
+            required
+          />
+
+          <select
+            className="bg-[#eeeeee] mb-7 rounded px-4 py-2 w-full text-lg"
+            value={vehicleType}
+            onChange={(e) => setVehicleType(e.target.value)}
+            required
+          >
+            <option value="">Select Vehicle Type</option>
+            <option value="car">Car</option>
+            <option value="auto">Auto</option>
+            <option value="motorcycle">Motorcycle</option>
+          </select>
           <button
             className="bg-[#111] text-white font-semibold mb-3 rounded px-4 py-2 w-full text-lg placeholder:text-base"
             type="submit"
           >
-            Login
+            Create Captain Account
           </button>
 
           <p className="text-center">

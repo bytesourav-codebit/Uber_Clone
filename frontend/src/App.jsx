@@ -3,6 +3,7 @@ import Start from "./pages/Start";
 import Home from "./pages/Home";
 import CaptainLogin from "./pages/CaptainLogin";
 import CaptainSignup from "./pages/CaptainSignup";
+import CaptainHome from "./pages/CaptainHome";
 import UserLogin from "./pages/UserLogin";
 import UserSignup from "./pages/UserSignup";
 import UserProtectWrapper from "./pages/UserProtectWrapper";
@@ -32,6 +33,7 @@ const App = () => {
           </UserProtectWrapper>
         }
       />
+      <Route path="/captain-home" element={<CaptainHome />} />
     </Routes>
   );
 };
