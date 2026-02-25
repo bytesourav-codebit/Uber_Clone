@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import uberlogo from "../assets/uber-logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { UserDataContext } from "../context/UserContext";
 
 const UserSignup = () => {
   const [email, setEmail] = useState("");
@@ -9,22 +11,40 @@ const UserSignup = () => {
   const [lastName, setLastName] = useState("");
   const [userData, setUserData] = useState("");
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    setUserData({
-      fullName: {
-        firstName: firstName,
-        lastName: lastName,
-      },
-      email: email,
-      password: password,
-    });
+  const { user, setUser } = useContext(UserDataContext);
 
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setPassword("");
+  const navigate = useNavigate();
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+
+    const newUser = {
+      fullname: {
+        firstname: firstName,
+        lastname: lastName,
+      },
+      email,
+      password,
+    };
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/register`,
+        newUser,
+      );
+
+      console.log("SUCCESS:", response.data);
+
+      localStorage.setItem("token", response.data.token);
+
+      setUser(response.data.user);
+
+      navigate("/home");
+    } catch (error) {
+      console.log("ERROR:", error?.response?.data || error.message);
+    }
   };
+
   return (
     <div className="p-7 flex flex-col h-screen justify-between">
       <div>
@@ -83,7 +103,7 @@ const UserSignup = () => {
             className="bg-[#111] text-white font-semibold mb-3 rounded px-4 py-2 w-full text-lg placeholder:text-base"
             type="submit"
           >
-            Login
+            SignUp{" "}
           </button>
 
           <p className="text-center">
